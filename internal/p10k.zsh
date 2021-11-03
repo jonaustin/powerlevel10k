@@ -1159,35 +1159,24 @@ function _p9k_parse_aws_config() {
 ################################################################
 # AWS Profile
 prompt_aws() {
-  typeset -g P9K_AWS_PROFILE="${AWS_VAULT:-${AWSUME_PROFILE:-${AWS_PROFILE:-$AWS_DEFAULT_PROFILE}}}"
-  local pat class state
+  #local aws_profile="${AWS_VAULT:-${AWSUME_PROFILE:-${AWS_PROFILE:-$AWS_DEFAULT_PROFILE}}}"
+  local aws_account=$(aws sts get-caller-identity|grep Account|awk -F':' '{print $2}'| awk -F'"' '{print $2}')
+  local pat class
   for pat class in "${_POWERLEVEL9K_AWS_CLASSES[@]}"; do
-    if [[ $P9K_AWS_PROFILE == ${~pat} ]]; then
+    #if [[ $aws_profile == ${~pat} ]]; then
+    if [[ $aws_account == ${~pat} ]]; then
       [[ -n $class ]] && state=_${${(U)class}//İ/I}
       break
     fi
   done
-
-  if [[ -n ${AWS_REGION:-$AWS_DEFAULT_REGION} ]]; then
-    typeset -g P9K_AWS_REGION=${AWS_REGION:-$AWS_DEFAULT_REGION}
-  else
-    local cfg=${AWS_CONFIG_FILE:-~/.aws/config}
-    if ! _p9k_cache_stat_get $0 $cfg; then
-      local -a reply
-      _p9k_parse_aws_config $cfg
-      _p9k_cache_stat_set $reply
-    fi
-    local prefix=$#P9K_AWS_PROFILE:$P9K_AWS_PROFILE:
-    local kv=$_p9k__cache_val[(r)${(b)prefix}*]
-    typeset -g P9K_AWS_REGION=${kv#$prefix}
-  fi
-
-  _p9k_prompt_segment "$0$state" red white 'AWS_ICON' 0 '' "${P9K_AWS_PROFILE//\%/%%}"
+  _p9k_prompt_segment "$0$state" red white 'AWS_ICON' 0 '' "${aws_account//\%/%%}"
 }
 
 _p9k_prompt_aws_init() {
-  typeset -g "_p9k__segment_cond_${_p9k__prompt_side}[_p9k__segment_index]"='${AWS_VAULT:-${AWSUME_PROFILE:-${AWS_PROFILE:-$AWS_DEFAULT_PROFILE}}}'
+  #typeset -g "_p9k__segment_cond_${_p9k__prompt_side}[_p9k__segment_index]"='${AWS_VAULT:-${AWSUME_PROFILE:-${AWS_PROFILE:-$AWS_DEFAULT_PROFILE}}}'
+  typeset -g "_p9k__segment_cond_${_p9k__prompt_side}[_p9k__segment_index]"='${aws_account}}}'
 }
+
 
 ################################################################
 # Current Elastic Beanstalk environment
